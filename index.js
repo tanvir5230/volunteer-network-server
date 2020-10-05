@@ -54,8 +54,6 @@ client.connect((err) => {
       .limit(20)
       .toArray((err, docs) => {
         res.send(docs);
-        console.log(docs);
-        console.log(err.message);
       });
     console.log("hello");
   });
@@ -67,9 +65,6 @@ client.connect((err) => {
     regCollection.find({}).toArray((err, docs) => {
       if (docs) {
         res.send(docs);
-        console.log(docs);
-      } else {
-        res.send(err);
       }
     });
   });
