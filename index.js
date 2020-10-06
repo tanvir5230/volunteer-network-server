@@ -5,6 +5,19 @@ const bodyParser = require("body-parser");
 const { ObjectId } = require("mongodb");
 require("dotenv").config();
 
+// mullter
+const multer = require("multer");
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./public/images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+const upload = multer({ storage: storage });
+// mullter
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wghoc.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 const client = new MongoClient(
   uri,
@@ -17,6 +30,7 @@ const client = new MongoClient(
 const port = 5000;
 const app = express();
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
 client.connect((err) => {
@@ -40,6 +54,19 @@ client.connect((err) => {
         res.send(err);
       });
   });
+  app.post("/addEvent", upload.single("banner"), (req, res) => {
+    try {
+      res.send("your file has been uploaded.");
+      const data = {
+        name: req.body.event,
+        date: req.body.date,
+        image: "http://localhost:5000/public/images/" + req.file.originalname,
+      };
+      eventsCollection.insertOne(data);
+    } catch (err) {
+      res.sendStatus(400);
+    }
+  });
 
   app.get("/registeredEvents", (req, res) => {
     const email = req.query.email;
@@ -47,7 +74,6 @@ client.connect((err) => {
       res.send(docs);
     });
   });
-
   app.get("/", (req, res) => {
     const events = eventsCollection
       .find({})
@@ -55,7 +81,6 @@ client.connect((err) => {
       .toArray((err, docs) => {
         res.send(docs);
       });
-    console.log("hello");
   });
   app.get("/public/images/:name", (req, res) => {
     const imgName = req.params.name;
@@ -80,6 +105,7 @@ client.connect((err) => {
     const id = req.params.id;
     regCollection.deleteOne({ _id: ObjectId(id) }).then((result) => {
       res.send(result.deletedCount > 0);
+      console.log(result.deletedCount);
     });
   });
 });
