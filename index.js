@@ -76,6 +76,12 @@ client.connect((err) => {
       res.send(result.deletedCount > 0);
     });
   });
+  app.delete("/deleteVol/:id", (req, res) => {
+    const id = req.params.id;
+    regCollection.deleteOne({ _id: ObjectId(id) }).then((result) => {
+      res.send(result.deletedCount > 0);
+    });
+  });
 });
 
 app.listen(process.env.PORT || port);
