@@ -60,7 +60,9 @@ client.connect((err) => {
       const data = {
         name: req.body.event,
         date: req.body.date,
-        image: "http://localhost:5000/public/images/" + req.file.originalname,
+        image:
+          "https://volunteer-network-server-t.herokuapp.com/public/images/" +
+          req.file.originalname,
       };
       eventsCollection.insertOne(data);
     } catch (err) {
