@@ -5,6 +5,15 @@ const bodyParser = require("body-parser");
 const { ObjectId } = require("mongodb");
 require("dotenv").config();
 
+const admin = require("firebase-admin");
+
+const serviceAccount = require("./volunteer-network-t-firebase-adminsdk-4q30x-475fd98db7.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://volunteer-network-t.firebaseio.com",
+});
+
 // mullter
 const multer = require("multer");
 const storage = multer.diskStorage({
@@ -71,10 +80,26 @@ client.connect((err) => {
   });
 
   app.get("/registeredEvents", (req, res) => {
-    const email = req.query.email;
-    regCollection.find({ email: email }).toArray((err, docs) => {
-      res.send(docs);
-    });
+    const queryEmail = req.query.email;
+    const bearer = req.headers.authorization;
+    if (bearer && bearer.startsWith("Bearer ")) {
+      const idToken = req.headers.authorization.split(" ")[1];
+      // idToken comes from the client app
+      admin
+        .auth()
+        .verifyIdToken(idToken)
+        .then(function (decodedToken) {
+          let decodedEmail = decodedToken.email;
+          if (decodedEmail === queryEmail) {
+            regCollection.find({ email: queryEmail }).toArray((err, docs) => {
+              res.send(docs);
+            });
+          }
+        })
+        .catch(function (error) {
+          // Handle error
+        });
+    }
   });
   app.get("/", (req, res) => {
     const events = eventsCollection
