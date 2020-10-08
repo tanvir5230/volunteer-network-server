@@ -107,7 +107,6 @@ client.connect((err) => {
     const id = req.params.id;
     regCollection.deleteOne({ _id: ObjectId(id) }).then((result) => {
       res.send(result.deletedCount > 0);
-      console.log(result.deletedCount);
     });
   });
 });
